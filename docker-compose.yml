@@ -1,0 +1,47 @@
+services:
+  backend:
+    build:
+      context: ./Backend
+    container_name: backend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - mongo
+    networks:
+      - app-network
+    environment:
+      - DATABASE_URL=mongodb://mongo:27017/kennectDB
+    volumes:
+      - ./Backend:/app
+      - /app/node_modules  # Prevents host node_modules from interfering
+
+  frontend:
+    build:
+      context: ./Frontend
+    container_name: frontend-app
+    ports:
+      - "5173:5173"
+    networks:
+      - app-network
+    volumes:
+      - ./Frontend:/app
+      - /app/node_modules
+    command: npm run dev
+    environment:
+      - NODE_ENV=development
+
+  mongo:
+    image: mongo
+    container_name: mongo_db
+    ports:
+     - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+     - app-network
+
+volumes:
+  mongo_data:
+
+networks:
+  app-network:
