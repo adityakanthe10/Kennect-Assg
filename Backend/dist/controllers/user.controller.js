@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.signup = void 0;
+exports.login = exports.signup = void 0;
 const prisma_1 = __importDefault(require("../lib/prisma"));
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const signup = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -40,3 +40,38 @@ const signup = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     }
 });
 exports.signup = signup;
+const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { email, password } = req.body;
+    try {
+        // find user by email
+        const user = yield prisma_1.default.user.findUnique({
+            where: {
+                email,
+            },
+        });
+        if (!user) {
+            res.status(401).json({
+                message: "Invalid email or password",
+            });
+            return;
+        }
+        // compare the password with the hashed password in DB
+        const isPasswordValid = yield bcrypt_1.default.compare(password, user.password);
+        if (!isPasswordValid) {
+            res.status(401).json({
+                message: "Invalid email or password",
+            });
+            return;
+        }
+        res.status(200).json({
+            message: "Login successful",
+        });
+    }
+    catch (error) {
+        console.log("error", error);
+        res.status(500).json({
+            message: "Internal Server Error",
+        });
+    }
+});
+exports.login = login;
